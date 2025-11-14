@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Header
-from app.db.connection import user_collection
-from app.schemas.user_schema import UserLogin
+from backend.app.db.connection import user_collection
+from backend.app.schemas.user_schema import UserLogin
 import bcrypt, jwt, datetime 
 from fastapi.security import HTTPBearer
 from jose import JWTError, jwt 
