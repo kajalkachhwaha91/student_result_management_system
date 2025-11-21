@@ -55,10 +55,10 @@ def download_result(student_id: str):
 
     pdf_path = f"results/{student_id}_result.pdf"
     c = canvas.Canvas(pdf_path, pagesize=A4)
-
+    c.drawString(100, 780, f"Student Result: ")
     c.drawString(100, 750, f"Student ID: {student['StudentID']}")
     c.drawString(100, 730, f"Total Marks: {student.get('Total', 'N/A')}")
-    c.drawString(100, 710, f"Percentage: {student.get('Percentage', 'N/A')}%")
+    # c.drawString(100, 710, f"Percentage: {student.get('Percentage', 'N/A')}%")
     c.drawString(100, 690, f"Grade: {student.get('Grade', 'N/A')}")
 
     c.save()
