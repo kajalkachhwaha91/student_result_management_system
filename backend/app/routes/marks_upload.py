@@ -1,45 +1,61 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Query
 import pandas as pd
 from backend.app.db.connection import result_collection
+import os
 from fastapi.responses import FileResponse
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
-import os
-from bson import ObjectId
 
 router = APIRouter(prefix="/marks", tags=["Marks"])
 
-
-# ==============================
-# 📌 UPLOAD MARKS API (upload by teacher on there portal)
-
 @router.post("/upload")
-async def upload_marks(file: UploadFile = File(...)):
+async def upload_marks(
+    file: UploadFile = File(...),
+    max_marks_per_subject: int = Query(100, description="Maximum marks per subject (default 100)")
+):
+    # Validate file type
     if not (file.filename.endswith(".xlsx") or file.filename.endswith(".csv")):
         raise HTTPException(status_code=400, detail="Only Excel or CSV files allowed")
 
-    # Read the uploaded file
+    # Read file into dataframe
     if file.filename.endswith(".xlsx"):
         df = pd.read_excel(file.file)
     else:
         df = pd.read_csv(file.file)
 
-    # Expected columns: StudentID, Subject1, Subject2, Subject3, etc.
+    # Required column
     if "StudentID" not in df.columns:
         raise HTTPException(status_code=400, detail="Missing StudentID column")
 
-    # Calculate total and percentage
-    df["Total"] = df.drop(columns=["StudentID"]).sum(axis=1)
-    df["Percentage"] = (df["Total"] / (len(df.columns) - 1) * 100).round(2)
+    # Determine subject columns (exclude StudentID and any previously added columns)
+    excluded = {"StudentID", "Total", "Percentage", "Grade"}
+    subject_cols = [c for c in df.columns if c not in excluded]
+
+    if not subject_cols:
+        raise HTTPException(status_code=400, detail="No subject columns found (columns other than 'StudentID')")
+
+    # Compute total from subject columns only
+    df["Total"] = df[subject_cols].sum(axis=1)
+
+    # Compute percentage correctly:
+    total_max_marks = len(subject_cols) * max_marks_per_subject
+    # Avoid division by zero
+    if total_max_marks <= 0:
+        raise HTTPException(status_code=400, detail="Invalid max marks or subject columns")
+
+    df["Percentage"] = (df["Total"] / total_max_marks * 100).round(2)
+
+    # Grade logic (adjust thresholds as needed)
     df["Grade"] = df["Percentage"].apply(
         lambda p: "A" if p >= 90 else "B" if p >= 75 else "C" if p >= 60 else "D"
     )
 
-    # Save results in MongoDB
+    # Prepare and insert records
     records = df.to_dict(orient="records")
     result_collection.insert_many(records)
 
     return {"message": "Marks uploaded successfully", "count": len(records)}
+
 
 
 # ==============================
@@ -58,7 +74,7 @@ def download_result(student_id: str):
     c.drawString(100, 780, f"Student Result: ")
     c.drawString(100, 750, f"Student ID: {student['StudentID']}")
     c.drawString(100, 730, f"Total Marks: {student.get('Total', 'N/A')}")
-    # c.drawString(100, 710, f"Percentage: {student.get('Percentage', 'N/A')}%")
+    c.drawString(100, 710, f"Percentage: {student.get('Percentage', 'N/A')}%")
     c.drawString(100, 690, f"Grade: {student.get('Grade', 'N/A')}")
 
     c.save()
@@ -97,6 +113,7 @@ def get_result_analytics():
         "average_percentage": round(avg_percentage, 2),
         "top_students": toppers,
     }
+
     results = list(result_collection.find({}))
     
     if not results:

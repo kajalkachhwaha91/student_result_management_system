@@ -6,6 +6,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=6)
     role: Literal["Student", "Teacher", "Admin"]
+    
 
 class UserLogin(BaseModel):
     email: EmailStr

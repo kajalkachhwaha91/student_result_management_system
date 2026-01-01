@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from backend.app.routes import student_routes
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.routes import student_routes, role_routes, user_routes, auth_routes,marks_upload, assignment
+from backend.app.routes import chatbot_routes
 
 
 
@@ -17,6 +18,7 @@ app.include_router(user_routes.router)
 app.include_router(auth_routes.router)
 app.include_router(marks_upload.router)
 app.include_router(assignment.router)
+app.include_router(chatbot_routes.router)
 
 # CORS setup (so React frontend can access)
 app.add_middleware(
