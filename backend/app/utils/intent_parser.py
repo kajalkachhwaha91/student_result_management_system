@@ -1,22 +1,11 @@
-import spacy
+from backend.ml.intent_classifier import detect_intent_ml
 
-nlp = spacy.load("en_core_web_sm")
+CONFIDENCE_THRESHOLD = 0.6
 
 def detect_intent(message: str):
-    msg = message.lower().strip()   # ✅ normalize
+    intent, confidence = detect_intent_ml(message)
 
-    # CLASS AVERAGE
-    if "average" in msg and "class" in msg:
-        return "CLASS_AVERAGE"
+    if confidence < CONFIDENCE_THRESHOLD:
+        return "UNKNOWN"
 
-    # ATTENDANCE (handle typo)
-    if "attendance" in msg or "attendence" in msg:
-        return "ATTENDANCE"
-
-    # NLP fallback for performance
-    doc = nlp(msg)
-    for token in doc:
-        if token.lemma_ in ["performance", "result", "mark", "score"]:
-            return "MY_PERFORMANCE"
-
-    return "UNKNOWN"
+    return intent

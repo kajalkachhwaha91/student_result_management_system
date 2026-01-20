@@ -26,11 +26,25 @@ async def login(user: UserLogin):
     if not bcrypt.checkpw(user.password.encode(), db_user["password"].encode()):
         raise HTTPException(401, "Invalid password")
 
-    token = jwt.encode({
-        "email": db_user["email"],
-        "role": db_user["role"],
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)
-    }, SECRET_KEY, algorithm=ALGORITHM)
+    # ✅ Normalize role from frontend
+    role = user.role.lower()
+    if role == "staff":
+        role = "Teacher"
+
+    # (Optional safety check)
+    if role not in ["Student", "Teacher", "Admin"]:
+        raise HTTPException(400, "Invalid role selected")
+
+    token = jwt.encode(
+        {
+            "id": str(db_user["_id"]),
+            "email": db_user["email"],
+            "role": role,  # 🔥 FRONTEND ROLE GOES INTO JWT
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1),
+        },
+        SECRET_KEY,
+        algorithm=ALGORITHM,
+    )
 
     return {
         "message": "Login successful",
@@ -38,9 +52,10 @@ async def login(user: UserLogin):
         "user": {
             "name": db_user["name"],
             "email": db_user["email"],
-            "role": db_user["role"]
-        }
+            "role": role,  # 🔥 SAME ROLE
+        },
     }
+
 
 # ===============================
 # PROFILE (ASYNC + MOTOR)

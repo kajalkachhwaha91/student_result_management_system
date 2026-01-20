@@ -1,0 +1,26 @@
+{
+  "MY_PERFORMANCE": [
+    "how did i perform",
+    "show my result",
+    "what is my performance",
+    "tell me my marks",
+    "my exam result"
+  ],
+  "CLASS_AVERAGE": [
+    "what is class average",
+    "show average marks",
+    "class performance",
+    "average score of class"
+  ],
+  // "ATTENDANCE": [
+  //   "what is my attendance",
+  //   "show attendance",
+  //   "attendance report"
+  // ],
+  "GREETING": [
+    "hi",
+    "hello",
+    "hey",
+    "good morning"
+  ]
+}
