@@ -1,6 +1,6 @@
 # backend/app/services/chatbot_service.py
 
-from app.utils.intent_parser import detect_intent
+from backend.app.utils.intent_parser import detect_intent
 from backend.app.db.connection import result_collection
 
 def process_chat(message: str, user=None):
