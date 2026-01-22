@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from backend.app.db.database import get_db
+from backend.app.db.connection  import user_collection
 from backend.app.schemas.user_schema import UserCreate
 import bcrypt
 
@@ -10,7 +10,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 # ============================
 @router.post("/signup")
 async def create_user(user: UserCreate):
-    db = get_db()
+    db = user_collection()
 
     # 1️⃣ Check if email exists
     existing = await db.users.find_one({"email": user.email})
@@ -47,7 +47,7 @@ async def create_user(user: UserCreate):
 
 @router.get("/students")
 async def get_students():
-    db = get_db()
+    db = user_collection()
 
     students_cursor = db.users.find({"role": "Student"})
     students = []
@@ -60,7 +60,7 @@ async def get_students():
 
 @router.get("/teachers")
 async def get_teachers():
-    db = get_db()
+    db = user_collection()
 
     teachers_cursor = db.users.find({"role": "Teacher"})
     teachers = []
@@ -73,7 +73,7 @@ async def get_teachers():
 
 @router.get("/admins")
 async def get_admins():
-    db = get_db()
+    db = user_collection()
 
     admins_cursor = db.users.find({"role": "Admin"})
     admins = []

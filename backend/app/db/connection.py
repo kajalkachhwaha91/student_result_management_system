@@ -1,4 +1,4 @@
-from pymongo import MongoClient
+from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 import os
 
@@ -9,17 +9,19 @@ load_dotenv()
 MONGO_URI = os.getenv("MONGO_URI")
 DATABASE_NAME = os.getenv("DATABASE_NAME")
 
-# ✅ Create MongoDB client
-client = MongoClient(MONGO_URI)
+if not MONGO_URI or not DATABASE_NAME:
+    raise Exception("MONGO_URI or DATABASE_NAME missing in .env")
+
+# ✅ Create ASYNC MongoDB client (Motor)
+client = AsyncIOMotorClient(MONGO_URI)
 db = client[DATABASE_NAME]
 
-# ✅ Example collection
+# ✅ Collections (ASYNC)
 user_collection = db["users"]
 student_collection = db["students"]
 result_collection = db["results"]
 assignment_collection = db["assignments"]
-submission_collection= db["submissions"]
+submission_collection = db["submissions"]
+bonafide_collection = db["bonafide_requests"]
 
-if __name__ == "__main__":
-    print("Connected to DB:", db.name)
-    print("Collections:", db.list_collection_names())
+# ❌ DO NOT use list_collection_names() with Motor at import time

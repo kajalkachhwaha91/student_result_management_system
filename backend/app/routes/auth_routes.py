@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Header
-from backend.app.db.database import get_db
+from backend.app.db.connection  import user_collection
 from backend.app.schemas.user_schema import UserLogin
 from jose import jwt, JWTError
 import bcrypt, datetime, os
@@ -17,7 +17,7 @@ ALGORITHM = "HS256"
 # ===============================
 @router.post("/auth/login")
 async def login(user: UserLogin):
-    db = get_db()
+    db = user_collection()
 
     db_user = await db.users.find_one({"email": user.email})
     if not db_user:
@@ -72,7 +72,7 @@ async def profile(authorization: str = Header(None)):
     except JWTError:
         raise HTTPException(401, "Invalid token")
 
-    db = get_db()
+    db = user_collection()
     user = await db.users.find_one({"email": payload["email"]})
 
     if not user:
